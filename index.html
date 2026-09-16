@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>AI見積アシスタント（配送・設置案件向け）｜デモ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">AI見積アシスタント</div>
+    <div class="sub">配送・設置・物流工事・産廃収集運搬の見積を、条件入力から自動算出</div>
+  </div>
+  <div class="demo-badge">DEMO ／ サンプルデータで動作しています</div>
+</header>
+
+<nav>
+  <button class="on" data-p="quote">① 見積作成</button>
+  <button data-p="sheet">② 見積書プレビュー</button>
+  <button data-p="deals">③ 案件管理表</button>
+  <button data-p="logic">④ 料金ロジック</button>
+  <button data-p="analysis">⑤ ばらつき分析</button>
+</nav>
+
+<main>
+
+<!-- ============ ① 見積作成 ============ -->
+<section class="page on" id="p-quote">
+  <h2>見積作成</h2>
+  <p class="lead">お客様からヒアリングした条件をそのまま入力してください。タリフのある条件は確定ルールで、タリフ外の条件は過去実績から算出します。</p>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h3>条件入力 <small>11項目</small></h3>
+        <div class="body">
+          <div class="row2">
+            <div><label>出発地</label><select id="i-from"></select></div>
+            <div><label>到着地</label><select id="i-to"></select></div>
+          </div>
+          <div class="km-hint">走行距離（地図データから自動取得）：<b id="i-km">－</b> km　／　到着エリア：<b id="i-area">－</b></div>
+          <div class="row2">
+            <div><label>車格</label><select id="i-vehicle"></select></div>
+            <div><label>車両台数</label><input type="number" id="i-units" value="1" min="1" max="20"></div>
+          </div>
+          <label>作業内容</label><select id="i-work"></select>
+          <div class="row2">
+            <div><label>作業人数</label><input type="number" id="i-workers" value="2" min="1" max="12"></div>
+            <div><label>待機見込（時間）</label><input type="number" id="i-wait" value="0" min="0" max="12" step="0.5"></div>
+          </div>
+          <label>前面道幅（搬入経路）</label><select id="i-road"></select>
+          <label>時期</label><select id="i-season"></select>
+          <label>パートナー企業</label><select id="i-partner"></select>
+          <div class="chk"><input type="checkbox" id="i-highway" checked><label for="i-highway" style="margin:0">高速道路を利用する</label></div>
+          <button class="primary" id="btn-calc">AIで見積を算出する</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result">
+      <div class="placeholder">左の条件を入力して「AIで見積を算出する」を押してください。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ② 見積書プレビュー ============ -->
+<section class="page" id="p-sheet">
+  <h2>見積書プレビュー</h2>
+  <p class="lead">算出した金額を、現行の見積書フォーマットに流し込んだ状態です。このまま印刷・PDF出力できます。</p>
+  <div class="noprint" style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="solid" onclick="window.print()">印刷 / PDF保存</button>
+    <button class="ghost" onclick="go('quote')">条件を修正する</button>
+  </div>
+  <div id="sheet-area"><div class="placeholder">先に「① 見積作成」で見積を算出してください。</div></div>
+</section>
+
+<!-- ============ ③ 案件管理表 ============ -->
+<section class="page" id="p-deals">
+  <h2>案件管理表</h2>
+  <p class="lead">見積を確定すると、案件管理表へ自動で登録されます。転記作業は不要です。</p>
+  <div class="kpi" id="deal-kpi"></div>
+  <div class="card">
+    <h3>案件一覧 <small>見積作成と同時に自動登録</small></h3>
+    <table>
+      <thead><tr><th>見積No</th><th>作成日</th><th>お客様</th><th>区間</th><th class="ctr">車格</th><th class="num">見積金額(税込)</th><th class="ctr">ステータス</th><th>担当</th></tr></thead>
+      <tbody id="deal-rows"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ ④ 料金ロジック ============ -->
+<section class="page" id="p-logic">
+  <h2>料金ロジック（マスタ）</h2>
+  <p class="lead">金額の決まり方をすべて画面上で確認できます。AIが勝手に値付けしているわけではありません。</p>
+  <div class="notice"><b>三層構成：</b>第1層 タリフ（確定ルール）→ 第2層 過去実績AI（タリフ外のみ）→ 第3層 補正係数。第1層でカバーできた割合は、見積ごとに「算出根拠」に表示されます。</div>
+  <div class="card">
+    <h3>第1層：基本運賃タリフ <small>適用エリア：関東・東海・関西／700kmまで</small></h3>
+    <table id="tariff-tbl"></table>
+  </div>
+  <div class="card">
+    <h3>作業内容マスタ <small>1台あたりの標準作業時間と付帯費</small></h3>
+    <table id="work-tbl"></table>
+  </div>
+  <div class="card">
+    <h3>第3層：補正係数 <small>時期・搬入難度・委託先</small></h3>
+    <table id="coef-tbl"></table>
+  </div>
+  <div class="card">
+    <h3>第2層：過去見積データ <small>AI類似検索の参照元（サンプル28件）</small></h3>
+    <table id="past-tbl"></table>
+  </div>
+</section>
+
+<!-- ============ ⑤ ばらつき分析 ============ -->
+<section class="page" id="p-analysis">
+  <h2>ばらつき分析</h2>
+  <p class="lead">同じ条件を担当者別に見積もったときの金額差です。標準化がどこまで進んだかを数値で確認できます。</p>
+  <div class="notice" id="var-cond"></div>
+  <div class="kpi" id="var-kpi"></div>
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+    <div class="card"><h3>導入前（担当者ごとの見積額）</h3><div class="body" id="var-before"></div></div>
+    <div class="card"><h3>導入後（本システムで算出）</h3><div class="body" id="var-after"></div></div>
+  </div>
+  <div class="card">
+    <h3>AI提示額と最終提出額の差分ログ <small>調整の履歴が学習データになります</small></h3>
+    <table id="adjlog-tbl"></table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  デモ環境／サンプルデータで動作しています。実在の企業・料金とは関係ありません。<br>
+  株式会社デジライズ
+</footer>
+
+<script src="data.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
