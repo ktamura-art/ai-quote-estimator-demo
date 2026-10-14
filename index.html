@@ -5,33 +5,41 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>AI見積アシスタント（配送・設置案件向け）｜デモ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="app">
 
-<header>
-  <div>
-    <div class="logo">AI見積アシスタント</div>
-    <div class="sub">荷物の明細から、積載量・必要車両台数・必要作業人数・見積金額を自動算出</div>
+<aside class="side">
+  <div class="brand">
+    <div class="brand-mark"><svg viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></div>
+    <div><div class="brand-name">AI見積アシスタント</div><div class="brand-sub">配送・設置案件向け</div></div>
   </div>
-  <div class="demo-badge">DEMO ／ サンプルデータで動作しています</div>
-</header>
-
-<nav>
-  <button class="on" data-p="quote">① 見積作成</button>
-  <button data-p="basis">② 積載・人員の算出根拠</button>
-  <button data-p="sheet">③ 見積書プレビュー</button>
-  <button data-p="deals">④ 案件管理表</button>
-  <button data-p="logic">⑤ 料金ロジック</button>
-  <button data-p="analysis">⑥ ばらつき分析</button>
-</nav>
+  <nav>
+    <div class="nav-label">見積</div>
+    <button class="on" data-p="quote"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M16 14v4M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/></svg>見積作成</button>
+    <button data-p="basis"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4M3 7l2 2 4-4M13 6h8M13 12h8M13 18h8"/></svg>積載・人員の算出根拠</button>
+    <button data-p="sheet"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M16 13H8M16 17H8M10 9H8"/></svg>見積書プレビュー</button>
+    <div class="nav-label">管理</div>
+    <button data-p="deals"><svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>案件管理表</button>
+    <button data-p="logic"><svg viewBox="0 0 24 24"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></svg>料金ロジック</button>
+    <button data-p="analysis"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M18 17V9M13 17V5M8 17v-3"/></svg>ばらつき分析</button>
+  </nav>
+  <div class="side-foot">
+    <span class="demo-pill">DEMO</span>
+    <p>サンプルデータで動作しています。実在の企業・料金とは関係ありません。</p>
+  </div>
+</aside>
 
 <main>
 
-<!-- ============ ① 見積作成 ============ -->
+<!-- ============ 見積作成 ============ -->
 <section class="page on" id="p-quote">
-  <h2>見積作成</h2>
-  <p class="lead">運ぶ荷物を品目と台数で入力してください。積載量・必要車両台数・必要作業人数を自動で割り出します。</p>
+  <header class="ph"><div><h2>見積作成</h2>
+    <p class="lead">運ぶ荷物を品目と台数で入力すると、積載量・必要車両台数・必要作業人数・金額を割り出します。</p></div></header>
 
   <div class="card">
     <h3>案件テンプレート <small>よくある案件パターンから読み込めます</small></h3>
@@ -39,27 +47,27 @@
   </div>
 
   <div class="grid">
-    <div>
+    <div class="col-input">
       <div class="card">
-        <h3>荷物明細 <small>ここが算出の起点です</small></h3>
+        <h3>荷物明細 <small>算出の起点です</small></h3>
         <div class="body">
           <table class="lines">
-            <thead><tr><th>品目</th><th class="num" style="width:78px">台数</th><th style="width:34px"></th></tr></thead>
+            <thead><tr><th>品目</th><th class="num" style="width:84px">台数</th><th style="width:36px"></th></tr></thead>
             <tbody id="line-rows"></tbody>
           </table>
-          <button class="ghost" id="btn-addline" style="margin-top:10px">＋ 明細を追加</button>
+          <button class="ghost add" id="btn-addline">＋ 明細を追加</button>
           <div class="totals" id="line-totals"></div>
         </div>
       </div>
 
       <div class="card">
         <h3>配送・作業条件</h3>
-        <div class="body">
+        <div class="body form">
           <div class="row2">
             <div><label>出発地</label><select id="i-from"></select></div>
             <div><label>到着地</label><select id="i-to"></select></div>
           </div>
-          <div class="km-hint">走行距離（地図データから自動取得）：<b id="i-km">－</b> km　／　到着エリア：<b id="i-area">－</b></div>
+          <div class="km-hint"><span>走行距離（地図データから自動取得）<b id="i-km">－</b> km</span><span>到着エリア <b id="i-area">－</b></span></div>
           <label>納品先の条件</label><select id="i-floor"></select>
           <label>前面道幅（搬入経路）</label><select id="i-road"></select>
           <div class="row2">
@@ -67,78 +75,79 @@
             <div><label>時期</label><select id="i-season"></select></div>
           </div>
           <label>パートナー企業</label><select id="i-partner"></select>
-          <div class="chk"><input type="checkbox" id="i-recycle"><label for="i-recycle" style="margin:0">旧品のリサイクル回収あり</label></div>
-          <div class="chk"><input type="checkbox" id="i-highway" checked><label for="i-highway" style="margin:0">高速道路を利用する</label></div>
+          <div class="chk"><input type="checkbox" id="i-recycle"><label for="i-recycle">旧品のリサイクル回収あり</label></div>
+          <div class="chk"><input type="checkbox" id="i-highway" checked><label for="i-highway">高速道路を利用する</label></div>
           <button class="primary" id="btn-calc">積載量・人員・金額を算出する</button>
         </div>
       </div>
     </div>
 
     <div id="result">
-      <div class="placeholder">荷物明細と条件を入力して「積載量・人員・金額を算出する」を押してください。</div>
+      <div class="placeholder">
+        <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M16 14v4M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/></svg>
+        <b>算出結果がここに表示されます</b>
+        <span>荷物明細と条件を入力して「積載量・人員・金額を算出する」を押してください。</span>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ============ ② 算出根拠 ============ -->
+<!-- ============ 算出根拠 ============ -->
 <section class="page" id="p-basis">
-  <h2>積載量・人員の算出根拠</h2>
-  <p class="lead">「なぜこの台数・この人数なのか」を、計算の途中経過まで開示します。</p>
-  <div id="basis-area"><div class="placeholder">先に「① 見積作成」で算出してください。</div></div>
+  <header class="ph"><div><h2>積載・人員の算出根拠</h2>
+    <p class="lead">「なぜこの台数・この人数なのか」を、計算の途中経過まで開示します。</p></div></header>
+  <div id="basis-area"><div class="placeholder"><b>まだ算出されていません</b><span>先に「見積作成」で算出してください。</span></div></div>
 </section>
 
-<!-- ============ ③ 見積書 ============ -->
+<!-- ============ 見積書 ============ -->
 <section class="page" id="p-sheet">
-  <h2>見積書プレビュー</h2>
-  <p class="lead">算出した金額を見積書フォーマットに流し込んだ状態です。このまま印刷・PDF出力できます。</p>
-  <div class="noprint" style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap">
-    <button class="solid" onclick="window.print()">印刷 / PDF保存</button>
-    <button class="ghost" onclick="go('quote')">条件を修正する</button>
-  </div>
-  <div id="sheet-area"><div class="placeholder">先に「① 見積作成」で算出してください。</div></div>
+  <header class="ph"><div><h2>見積書プレビュー</h2>
+    <p class="lead">算出した金額を見積書フォーマットに流し込んだ状態です。このまま印刷・PDF出力できます。</p></div>
+    <div class="ph-actions noprint">
+      <button class="ghost" onclick="go('quote')">条件を修正する</button>
+      <button class="solid" onclick="window.print()">印刷 / PDF保存</button>
+    </div></header>
+  <div id="sheet-area"><div class="placeholder"><b>まだ見積書がありません</b><span>先に「見積作成」で算出し、「この内容で見積書を作成」を押してください。</span></div></div>
 </section>
 
-<!-- ============ ④ 案件管理表 ============ -->
+<!-- ============ 案件管理表 ============ -->
 <section class="page" id="p-deals">
-  <h2>案件管理表</h2>
-  <p class="lead">見積を確定すると、案件管理表へ自動で登録されます。転記作業は不要です。</p>
+  <header class="ph"><div><h2>案件管理表</h2>
+    <p class="lead">見積を確定すると、案件管理表へ自動で登録されます。転記作業は不要です。</p></div></header>
   <div class="kpi" id="deal-kpi"></div>
   <div class="card">
     <h3>案件一覧 <small>見積作成と同時に自動登録</small></h3>
-    <table><thead><tr><th>見積No</th><th>作成日</th><th>お客様</th><th>区間</th><th>内容</th><th class="num">見積金額(税込)</th><th class="ctr">ステータス</th><th>担当</th></tr></thead>
-    <tbody id="deal-rows"></tbody></table>
+    <div class="tbl-wrap"><table><thead><tr><th>見積No</th><th>作成日</th><th>お客様</th><th>区間</th><th>内容</th><th class="num">見積金額(税込)</th><th class="ctr">ステータス</th><th>担当</th></tr></thead>
+    <tbody id="deal-rows"></tbody></table></div>
   </div>
 </section>
 
-<!-- ============ ⑤ 料金ロジック ============ -->
+<!-- ============ 料金ロジック ============ -->
 <section class="page" id="p-logic">
-  <h2>料金ロジック（マスタ）</h2>
-  <p class="lead">金額と人員の決まり方をすべて画面上で確認できます。AIが値付けしているわけではありません。</p>
-  <div class="notice"><b>算出の順序：</b>荷物明細 → ①積載量（容積・重量）→ ②必要車両台数 → ③必要作業人数 → ④金額。すべて下記マスタに基づく決定的な計算です。</div>
-  <div class="card"><h3>品目マスタ <small>荷姿の容積・重量と、設置に要する人時</small></h3><table id="item-tbl"></table></div>
-  <div class="card"><h3>車両マスタ <small>積載容積・最大積載重量</small></h3><table id="veh-tbl"></table></div>
-  <div class="card"><h3>作業係数 <small>納品先条件・時期・委託先</small></h3><table id="coef-tbl"></table></div>
-  <div class="card"><h3>車両タリフ <small>1台あたりの運賃（距離帯 × 車格）</small></h3><table id="tariff-tbl"></table></div>
+  <header class="ph"><div><h2>料金ロジック（マスタ）</h2>
+    <p class="lead">金額と人員の決まり方をすべて画面上で確認できます。AIが値付けしているわけではありません。</p></div></header>
+  <div class="notice"><b>算出の順序</b>荷物明細 → 積載量（容積・重量）→ 必要車両台数 → 必要作業人数 → 金額。すべて下記マスタに基づく決定的な計算です。</div>
+  <div class="card"><h3>品目マスタ <small>荷姿の容積・重量と、設置に要する人時</small></h3><div class="tbl-wrap"><table id="item-tbl"></table></div></div>
+  <div class="card"><h3>車両マスタ <small>積載容積・最大積載重量</small></h3><div class="tbl-wrap"><table id="veh-tbl"></table></div></div>
+  <div class="card"><h3>作業係数 <small>納品先条件・時期・委託先</small></h3><div class="tbl-wrap"><table id="coef-tbl"></table></div></div>
+  <div class="card"><h3>車両タリフ <small>1台あたりの運賃（距離帯 × 車格）</small></h3><div class="tbl-wrap"><table id="tariff-tbl"></table></div></div>
 </section>
 
-<!-- ============ ⑥ ばらつき分析 ============ -->
+<!-- ============ ばらつき分析 ============ -->
 <section class="page" id="p-analysis">
-  <h2>ばらつき分析</h2>
-  <p class="lead">同じ条件を担当者別に見積もったときの金額差です。標準化がどこまで進んだかを数値で確認できます。</p>
+  <header class="ph"><div><h2>ばらつき分析</h2>
+    <p class="lead">同じ条件を担当者別に見積もったときの金額差です。標準化がどこまで進んだかを数値で確認できます。</p></div></header>
   <div class="notice" id="var-cond"></div>
   <div class="kpi" id="var-kpi"></div>
-  <div class="grid" style="grid-template-columns:1fr 1fr">
-    <div class="card"><h3>導入前（担当者ごとの見積額）</h3><div class="body" id="var-before"></div></div>
-    <div class="card"><h3>導入後（本システムで算出）</h3><div class="body" id="var-after"></div></div>
+  <div class="grid2">
+    <div class="card"><h3>導入前 <small>担当者ごとの見積額</small></h3><div class="body" id="var-before"></div></div>
+    <div class="card"><h3>導入後 <small>本システムで算出</small></h3><div class="body" id="var-after"></div></div>
   </div>
 </section>
 
+<footer>デモ環境／サンプルデータで動作しています。実在の企業・料金とは関係ありません。　株式会社デジライズ</footer>
 </main>
-
-<footer>
-  デモ環境／サンプルデータで動作しています。実在の企業・料金とは関係ありません。<br>
-  株式会社デジライズ
-</footer>
+</div>
 
 <script src="data.js"></script>
 <script src="engine.js"></script>

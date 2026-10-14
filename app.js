@@ -58,10 +58,10 @@ function renderLines(){
 function updTotals(){
   const s = summarize(lines);
   $("line-totals").innerHTML =
-    `<span>合計台数 <b>${fmt(s.qty)}</b> 台</span>
-     <span>総容積 <b>${s.m3.toFixed(1)}</b> m³</span>
-     <span>総重量 <b>${fmt(s.kg)}</b> kg</span>
-     <span>設置人時 <b>${fmt(s.setupMin)}</b> 分</span>`;
+    `<span>合計台数<b>${fmt(s.qty)}<small> 台</small></b></span>
+     <span>総容積<b>${s.m3.toFixed(1)}<small> m³</small></b></span>
+     <span>総重量<b>${fmt(s.kg)}<small> kg</small></b></span>
+     <span>設置人時<b>${fmt(s.setupMin)}<small> 分</small></b></span>`;
 }
 $("btn-addline").onclick = () => { lines.push({id:"ref-s", qty:1}); renderLines(); };
 renderLines(); refreshKm();
@@ -82,54 +82,68 @@ const pill = s => s==="実績推定" ? '<span class="pill ai">実績推定</span
   : s==="補正" ? '<span class="pill adj">補正</span>'
   : s==="実費" ? '<span class="pill jit">実費</span>' : '<span class="pill rule">タリフ</span>';
 
+const ICON = {
+  truck:'<svg viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
+  users:'<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  yen:'<svg viewBox="0 0 24 24"><path d="M12 9.5V21M12 9.5 6 3M12 9.5 18 3M6 15h12M6 11h12"/></svg>',
+  info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>'
+};
+
 function renderResult(){
   const r = current;
   const adj = Math.round(r.subtotal * adjustRate/100);
   const after = r.subtotal + adj, tax = Math.round(after*0.1), grand = after + tax;
   Object.assign(r, { adj, after, tax, grand });
+  const sign = adjustRate>0 ? "+" : "";
 
   $("result").innerHTML = `
-    <div class="big2">
-      <div><div class="l">必要な車両</div><div class="n">${r.vehicle.v.name} × ${r.units}台</div>
-        <div class="s">${r.unitsDriver}で決定／1台あたり ${r.vehicle.cap}m³・${fmt(r.vehicle.v.kg)}kg</div></div>
-      <div class="o"><div class="l">必要な作業人数</div><div class="n">${r.crewPlan.crew}名 × ${r.input.days}日</div>
-        <div class="s">${r.crewPlan.reason}で決定／補正後 ${fmt(r.crewPlan.adjMin)}人時分</div></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-ic b">${ICON.truck}</div><div>
+        <div class="stat-l">必要な車両</div>
+        <div class="stat-v">${r.vehicle.v.name}<small>× ${r.units}台</small></div>
+        <div class="stat-s">${r.unitsDriver}で決定<br><span class="nw">1台 ${r.vehicle.cap}m³</span>／<span class="nw">${fmt(r.vehicle.v.kg)}kg</span></div></div></div>
+      <div class="stat"><div class="stat-ic o">${ICON.users}</div><div>
+        <div class="stat-l">必要な作業人数</div>
+        <div class="stat-v">${r.crewPlan.crew}名<small>× ${r.input.days}日</small></div>
+        <div class="stat-s">${r.crewPlan.reason}で決定<br>補正後 ${fmt(r.crewPlan.adjMin)}人時分</div></div></div>
+      <div class="stat hero"><div class="stat-ic">${ICON.yen}</div><div>
+        <div class="stat-l">御見積金額（税込）</div>
+        <div class="stat-v">¥${fmt(grand)}</div>
+        <div class="stat-s">税抜 ¥${fmt(after)}<br>消費税 ¥${fmt(tax)}</div></div></div>
     </div>
+
     <div class="card">
-      <div class="total-head">
-        <div><div style="font-size:11.5px;opacity:.85;margin-bottom:4px">御見積金額（税込）</div>
-          <div class="amt">¥${fmt(grand)}</div>
-          <div class="tax">税抜 ¥${fmt(after)}　／　消費税 ¥${fmt(tax)}</div></div>
-        <div class="meta">${r.input.from} → ${r.input.to}（${fmt(r.km)}km）<br>
-          荷物 ${fmt(r.sum.qty)}台／${r.sum.m3.toFixed(1)}m³／${fmt(r.sum.kg)}kg<br>
-          ${r.input.floor} ／ ${r.input.season}</div>
-      </div>
+      <div class="card-h"><div><h3>見積の内訳</h3>
+        <p>${r.input.from} → ${r.input.to}（${fmt(r.km)}km）・荷物 ${fmt(r.sum.qty)}台／${r.sum.m3.toFixed(1)}m³／${fmt(r.sum.kg)}kg・${r.input.floor}・${r.input.season}</p></div></div>
       <div class="conf">
-        <b style="color:var(--navy);font-size:12px">算出の内訳（タリフ ／ 実績推定）</b>
-        <div class="bar"><i class="r" style="width:${r.ruleShare}%">${r.ruleShare>12?"タリフ "+r.ruleShare+"%":""}</i>
-          <i class="a" style="width:${r.aiShare}%">${r.aiShare>12?"実績推定 "+r.aiShare+"%":""}</i></div>
+        <div class="conf-top"><span>算出の内訳</span>
+          <span class="legend"><span><i class="r"></i>タリフ ${r.ruleShare}%</span><span><i class="a"></i>実績推定 ${r.aiShare}%</span></span></div>
+        <div class="bar"><i class="r" style="width:${r.ruleShare}%"></i><i class="a" style="width:${r.aiShare}%"></i></div>
         <small>${r.aiShare===0 ? "全額がタリフと係数で算出されています。担当者が変わっても同じ金額になります。"
-          : "オレンジ部分はタリフ外エリアのため実績ベースの推定です。営業担当者による最終調整をおすすめします。"}</small>
+          : "タリフ外エリアの運賃は実績ベースの推定です。営業担当者による最終調整をおすすめします。"}</small>
       </div>
-      <table><thead><tr><th>項目</th><th class="ctr" style="width:90px">算出元</th><th class="num" style="width:110px">金額（税抜）</th></tr></thead>
+      <div class="tbl-wrap"><table><thead><tr><th>項目</th><th class="ctr" style="width:100px">算出元</th><th class="num" style="width:120px">金額（税抜）</th></tr></thead>
         <tbody>${r.lines.map(l=>`<tr><td><b>${l.name}</b><span class="dt">${l.detail}</span></td>
           <td class="ctr">${pill(l.src)}</td><td class="num">${fmt(l.amount)}</td></tr>`).join("")}</tbody>
         <tfoot><tr><td colspan="2">小計</td><td class="num">${fmt(r.subtotal)}</td></tr>
-          ${adj!==0?`<tr><td colspan="2">営業調整（${adjustRate>0?"+":""}${adjustRate}%）</td><td class="num">${fmt(adj)}</td></tr>`:""}
-          <tr><td colspan="2">合計（税抜）</td><td class="num">${fmt(after)}</td></tr></tfoot></table>
+          ${adj!==0?`<tr><td colspan="2">営業調整（${sign}${adjustRate}%）</td><td class="num">${fmt(adj)}</td></tr>`:""}
+          <tr><td colspan="2">合計（税抜）</td><td class="num">¥${fmt(after)}</td></tr></tfoot></table></div>
       <div class="adjust">
-        <b>営業担当者による調整</b>
-        <input type="range" id="adj" min="-20" max="20" step="1" value="${adjustRate}" style="width:180px">
-        <span id="adj-v" style="font-weight:bold;color:var(--orange);width:46px">${adjustRate>0?"+":""}${adjustRate}%</span>
-        <span style="color:var(--gray);font-size:11.5px">「もう少し取れるか」「安くしないと取れないか」の調整は記録に残ります</span>
-        <button class="solid" id="btn-fix" style="margin-left:auto">この内容で見積書を作成</button>
+        <div class="adjust-l"><b>営業担当者による調整</b>
+          <span>「もう少し取れるか」「安くしないと取れないか」の調整は記録に残ります</span></div>
+        <div class="adjust-ctl">
+          <input type="range" id="adj" min="-20" max="20" step="1" value="${adjustRate}">
+          <span id="adj-v" class="adj-v ${adjustRate>0?"up":adjustRate<0?"down":""}">${sign}${adjustRate}%</span>
+        </div>
+        <button class="solid" id="btn-fix">この内容で見積書を作成</button>
       </div>
     </div>
-    <div class="basis"><h4>算出の考え方</h4>
-      <p>荷物明細から総容積 <b>${r.sum.m3.toFixed(1)}m³</b>・総重量 <b>${fmt(r.sum.kg)}kg</b> を求め、
-      積載効率${Math.round(LOAD_EFFICIENCY*100)}%を見込んで車両台数を決定。設置人時と荷降ろし人時に納品先条件の係数を掛けて必要人数を算出しています。
-      詳しい途中経過は「② 積載・人員の算出根拠」でご確認いただけます。</p>
-      <button class="ghost" onclick="go('basis')">算出根拠を見る</button></div>`;
+
+    <div class="basis"><div class="ic">${ICON.info}</div><div>
+      <h4>算出の考え方</h4>
+      <p>荷物明細から総容積 <b>${r.sum.m3.toFixed(1)}m³</b>・総重量 <b>${fmt(r.sum.kg)}kg</b> を求め、積載効率${Math.round(LOAD_EFFICIENCY*100)}%を見込んで車両台数を決定。
+      設置人時と荷降ろし人時に納品先条件の係数を掛けて必要人数を算出しています。</p>
+      <button class="ghost" onclick="go('basis')">算出根拠を見る</button></div></div>`;
   $("adj").oninput = e => { adjustRate = +e.target.value; renderResult(); $("adj").focus(); };
   $("btn-fix").onclick = fixQuote;
 }
@@ -138,7 +152,7 @@ function renderResult(){
 function renderBasis(){
   const r = current, c = r.crewPlan;
   $("basis-area").innerHTML = `
-  <div class="calcbox"><h4>STEP 1　荷物明細から積載量を求める</h4>
+  <div class="calcbox"><h4><span class="step">STEP 1</span>荷物明細から積載量を求める</h4>
     <table><thead><tr><th>品目</th><th class="num">台数</th><th class="num">容積計</th><th class="num">重量計</th><th class="num">設置人時</th></tr></thead>
       <tbody>${r.sum.detail.map(d=>`<tr><td>${d.name}<span class="dt">${(d.m3/d.qty).toFixed(2)}m³・${Math.round(d.kg/d.qty)}kg・${Math.round(d.min/d.qty)}人時分／台（${d.crew}名作業）</span></td>
         <td class="num">${fmt(d.qty)}</td><td class="num">${d.m3.toFixed(2)} m³</td>
@@ -146,7 +160,7 @@ function renderBasis(){
       <tfoot><tr><td>合計</td><td class="num">${fmt(r.sum.qty)}</td><td class="num">${r.sum.m3.toFixed(2)} m³</td>
         <td class="num">${fmt(r.sum.kg)} kg</td><td class="num">${fmt(r.sum.setupMin)} 分</td></tr></tfoot></table></div>
 
-  <div class="calcbox"><h4>STEP 2　必要な車両台数を決める</h4>
+  <div class="calcbox"><h4><span class="step">STEP 2</span>必要な車両台数を決める</h4>
     <p style="font-size:12px;margin:0 0 8px">容積で必要な台数と重量で必要な台数を両方出し、<b>大きい方</b>を採用します。
       前面道幅「${r.input.road}」で入れる車格に限定しています。</p>
     <table><thead><tr><th>車格</th><th class="num">積載容積<br>（効率${Math.round(LOAD_EFFICIENCY*100)}%）</th><th class="num">最大積載</th>
@@ -160,7 +174,7 @@ function renderBasis(){
       作業員${c.crew}名の乗車に必要な台数 = ${Math.ceil(c.crew/WORK.maxCrewPerVehicle)}台（1台あたり最大${WORK.maxCrewPerVehicle}名）<br>
       → 採用：<em>${r.vehicle.v.name} × ${r.units}台</em>（${r.unitsDriver}で決定／運賃合計が最小の車格を選択）</div></div>
 
-  <div class="calcbox"><h4>STEP 3　必要な作業人数を決める</h4>
+  <div class="calcbox"><h4><span class="step">STEP 3</span>必要な作業人数を決める</h4>
     <div class="formula">
       設置人時　　　${fmt(r.sum.setupMin)} 分（品目ごとの標準時間 × 必要人数 × 台数）<br>
       荷降ろし人時　${fmt(c.unloadMin)} 分（総容積 ${r.sum.m3.toFixed(2)}m³ × ${WORK.unloadMinPerM3}分/m³）<br>
@@ -173,7 +187,7 @@ function renderBasis(){
       品目の最低人数 <em>${c.minCrew}名</em>（2名作業が必要な品目を含む）<br>
       → 採用：<em>${c.crew}名</em>（${c.reason}で決定）</div></div>
 
-  <div class="calcbox"><h4>STEP 4　金額に落とす</h4>
+  <div class="calcbox"><h4><span class="step">STEP 4</span>金額に落とす</h4>
     <table><thead><tr><th>項目</th><th class="ctr" style="width:90px">算出元</th><th class="num" style="width:110px">金額（税抜）</th></tr></thead>
       <tbody>${r.lines.map(l=>`<tr><td><b>${l.name}</b><span class="dt">${l.detail}</span></td>
         <td class="ctr">${pill(l.src)}</td><td class="num">${fmt(l.amount)}</td></tr>`).join("")}</tbody>
