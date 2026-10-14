@@ -24,15 +24,15 @@ function allowedVehicles(road) {
 /* 距離帯から1台あたりの運賃を引く。タリフ外は実績ベースのkm単価で推定 */
 function vehicleFare(vName, km, area) {
   const bands = TARIFF[vName];
-  const inTariff = TARIFF_AREAS.includes(area) && km <= TARIFF_MAX_KM;
+  const inTariff = TARIFF_AREAS.includes(area) && km <= RATES.tariffMaxKm;
   if (inTariff) {
     for (const [max, price] of bands) if (km <= max) return { price, src: "タリフ", band: `〜${max}km` };
   }
   // タリフ外：最長距離帯のkm単価に遠距離係数を掛けて推定
   const [maxKm, maxPrice] = bands[bands.length - 1];
   const perKm = maxPrice / maxKm;
-  const price = Math.round(perKm * km * 1.15 / 1000) * 1000;
-  return { price, src: "実績推定", band: `${fmt(Math.round(perKm * 1.15))}円/km × ${fmt(km)}km` };
+  const price = Math.round(perKm * km * RATES.remoteFactor / 1000) * 1000;
+  return { price, src: "実績推定", band: `${fmt(Math.round(perKm * RATES.remoteFactor))}円/km × ${fmt(km)}km` };
 }
 
 /* ---- 1. 荷量の集計 ---- */
@@ -54,7 +54,7 @@ function summarize(lines) {
 function planVehicles(sum, road, km, area) {
   const allowed = allowedVehicles(road);
   const options = VEHICLES.filter(v => allowed.includes(v.name)).map(v => {
-    const cap = v.m3 * LOAD_EFFICIENCY;
+    const cap = v.m3 * RATES.loadEfficiency;
     const byVol = Math.ceil(sum.m3 / cap);
     const byWt  = Math.ceil(sum.kg / v.kg);
     const units = Math.max(byVol, byWt, 1);
@@ -107,9 +107,9 @@ function estimate(input) {
     detail:`${crewPlan.crew}名 × ${input.days}日 × ${WORK.shiftMinutes/60}時間 × ${fmt(WORK.laborRate)}円／人時` });
 
   if (input.recycle) {
-    const rec = DISPOSAL_FEE * sum.qty;
+    const rec = RATES.disposalFee * sum.qty;
     lines.push({ name:"リサイクル回収費", src:"タリフ", amount: rec,
-      detail:`${fmt(DISPOSAL_FEE)}円 × ${sum.qty}台（リサイクル券・マニフェスト含む）` });
+      detail:`${fmt(RATES.disposalFee)}円 × ${sum.qty}台（リサイクル券・マニフェスト含む）` });
   }
 
   const base = lines.reduce((s,l) => s + l.amount, 0);
@@ -120,11 +120,11 @@ function estimate(input) {
   if (partnerAdj) lines.push({ name:"パートナー原価調整", src:"補正", amount: partnerAdj, detail:`${input.partner}　係数 ×${pc.toFixed(2)}` });
 
   if (input.highway) {
-    const hw = Math.round(km * 26 * units / 100) * 100;
-    lines.push({ name:"高速道路料金", src:"実費", amount: hw, detail:`${fmt(km)}km × 約26円/km × ${units}台（実費請求）` });
+    const hw = Math.round(km * RATES.highwayPerKm * units / 100) * 100;
+    lines.push({ name:"高速道路料金", src:"実費", amount: hw, detail:`${fmt(km)}km × 約${fmt(RATES.highwayPerKm)}円/km × ${units}台（実費請求）` });
   }
-  const fuel = Math.round(freight * 0.06 / 100) * 100;
-  lines.push({ name:"燃料サーチャージ", src:"タリフ", amount: fuel, detail:"車両費 × 6%" });
+  const fuel = Math.round(freight * RATES.fuelRate / 100) * 100;
+  lines.push({ name:"燃料サーチャージ", src:"タリフ", amount: fuel, detail:`車両費 × ${+(RATES.fuelRate*100).toFixed(1)}%` });
 
   const subtotal = lines.reduce((s,l) => s + l.amount, 0);
   const ruleAmount = lines.filter(l => l.src !== "実績推定").reduce((s,l) => s + l.amount, 0);
@@ -133,5 +133,7 @@ function estimate(input) {
            units, unitsDriver, lines, subtotal,
            ruleShare: Math.round(ruleAmount / subtotal * 100),
            aiShare: 100 - Math.round(ruleAmount / subtotal * 100),
-           coef:{ season: sc, partner: pc } };
+           coef:{ season: sc, partner: pc },
+           params:{ loadEfficiency: RATES.loadEfficiency, unloadMinPerM3: WORK.unloadMinPerM3,
+                    shiftMinutes: WORK.shiftMinutes, maxCrewPerVehicle: WORK.maxCrewPerVehicle } };
 }
